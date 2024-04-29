@@ -1,26 +1,21 @@
 const http = require("http");
 const { v4: uuidv4 } = require("uuid");
-const errorHandler = require("./helper");
+const { errorHandler, successHandler } = require("./helper");
+const mongoose = require("mongoose");
+require("dotenv").config();
+const Post = require("./model/postSchema");
 
-const todos = [
-  {
-    id: "456123",
-    title: "今天洗衣服",
-  },
-  {
-    id: "123456",
-    title: "今天整理房間",
-  },
-  {
-    id: "111222",
-    title: "今天逛街",
-  },
-  {
-    id: "333444",
-    title: "今天看電影",
-  },
-];
-const reqListener = (req, res) => {
+//mongoose connect
+mongoose
+  .connect(process.env.DB_CONNECT)
+  .then(() => {
+    console.log("成功連接資料庫");
+  })
+  .catch((e) => {
+    console.log(e);
+  });
+
+const reqListener = async (req, res) => {
   const headers = {
     "Access-Control-Allow-Headers":
       "Content-Type, Authorization, Content-Length, X-Requested-With",
@@ -37,94 +32,33 @@ const reqListener = (req, res) => {
 
   //GET
   if (req.url === "/todos" && req.method === "GET") {
-    res.writeHead(200, headers);
-    res.write(
-      JSON.stringify({
-        status: "Get request succeeded",
-        data: todos,
-      })
-    );
-    res.end();
+    const data = await Post.find({});
+    successHandler(res, data);
   }
   //POST
   else if (req.url === "/todos" && req.method === "POST") {
     req.on("end", () => {
       try {
-        const { title } = JSON.parse(body);
-        if (title !== undefined) {
-          let newTodo = { title, id: uuidv4() };
-          todos.push(newTodo);
-          res.writeHead(200, headers);
-          res.write(
-            JSON.stringify({
-              status: "Post request succeeded.",
-              data: todos,
+        const data = JSON.parse(body);
+        if (data.name) {
+          Post.create({
+            name: data.name,
+            tags: data.tags,
+            image: data.image,
+            content: data.content,
+            type: data.type,
+          })
+            .then((result) => {
+              successHandler(res, result);
             })
-          );
-          res.end();
+            .catch((e) => {
+              errorHandler(res, e);
+            });
         } else {
           errorHandler(res);
         }
       } catch (e) {
-        errorHandler(res);
-      }
-    });
-  }
-  //DELETE
-  else if (req.url === "/todos" && req.method === "DELETE") {
-    todos.length = 0;
-    res.writeHead(200, headers);
-    res.write(
-      JSON.stringify({
-        status: "Delete all todos request succeeded",
-        data: todos,
-      })
-    );
-    res.end();
-  }
-  //DELETE Single todo
-  else if (req.url.startsWith("/todos/") && req.method === "DELETE") {
-    //取得代辦事項 id
-    const id = req.url.split("/").pop();
-    const targetIndex = todos.findIndex((todo) => todo.id === id);
-    if (targetIndex !== -1) {
-      todos.splice(targetIndex, 1);
-      res.writeHead(200, headers);
-      res.write(
-        JSON.stringify({
-          status: "Delete single todo request succeeded",
-          data: todos,
-        })
-      );
-      res.end();
-    } else {
-      errorHandler(res);
-    }
-  }
-  //PATCH
-  else if (req.url.startsWith("/todos/") && req.method === "PATCH") {
-    req.on("end", () => {
-      try {
-        //取得代辦事項 id
-        const id = req.url.split("/").pop();
-        const targetIndex = todos.findIndex((todo) => todo.id === id);
-        //取得代辦事項新的資料
-        const { title: newTitle } = JSON.parse(body);
-        if (newTitle !== undefined && targetIndex !== -1) {
-          todos[targetIndex].title = newTitle;
-          res.writeHead(200, headers);
-          res.write(
-            JSON.stringify({
-              status: "Delete single todo request succeeded",
-              data: todos,
-            })
-          );
-          res.end();
-        } else {
-          errorHandler(res);
-        }
-      } catch (e) {
-        errorHandler(res);
+        errorHandler(res, e);
       }
     });
   }
