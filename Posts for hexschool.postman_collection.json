@@ -1,0 +1,142 @@
+{
+	"info": {
+		"_postman_id": "4cedd3c7-bb5a-49d0-ba2d-79c08b034bbf",
+		"name": "Posts for hexschool",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20019429"
+	},
+	"item": [
+		{
+			"name": "取得所有文章",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://todo-list-hexschool.onrender.com/posts",
+					"protocol": "https",
+					"host": [
+						"todo-list-hexschool",
+						"onrender",
+						"com"
+					],
+					"path": [
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "新增文章",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"Angus\",\r\n    \"tags\":[\"程式\",\"股票\"],\r\n    \"type\" : \"person\",\r\n    \"content\" : \"哈哈哈哈哈哈哈哈\",\r\n    \"image\":\"http://dummyimage.com/232x100.png/cc0000/ffffff\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://todo-list-hexschool.onrender.com/todos",
+					"protocol": "https",
+					"host": [
+						"todo-list-hexschool",
+						"onrender",
+						"com"
+					],
+					"path": [
+						"todos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "刪除單一文章",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://todo-list-hexschool.onrender.com/posts/662a563d498d945af6b6465b",
+					"protocol": "https",
+					"host": [
+						"todo-list-hexschool",
+						"onrender",
+						"com"
+					],
+					"path": [
+						"posts",
+						"662a563d498d945af6b6465b"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "刪除全部文章",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://todo-list-hexschool.onrender.com/posts",
+					"protocol": "https",
+					"host": [
+						"todo-list-hexschool",
+						"onrender",
+						"com"
+					],
+					"path": [
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "修改單一文章",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\" : \"Tony Wunghf\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://todo-list-hexschool.onrender.com/posts/662f6776d4585e1598a7c403",
+					"protocol": "https",
+					"host": [
+						"todo-list-hexschool",
+						"onrender",
+						"com"
+					],
+					"path": [
+						"posts",
+						"662f6776d4585e1598a7c403"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

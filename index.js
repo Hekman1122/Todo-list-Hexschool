@@ -23,8 +23,12 @@ const reqListener = async (req, res) => {
 
   //GET
   if (req.url === "/posts" && req.method === "GET") {
-    const data = await Post.find({});
-    successHandler(res, data);
+    try {
+      const data = await Post.find({});
+      successHandler(res, data);
+    } catch (e) {
+      errorHandler(res, e);
+    }
   }
   //POST
   else if (req.url === "/posts" && req.method === "POST") {
@@ -51,14 +55,22 @@ const reqListener = async (req, res) => {
   }
   //DELETE ALL
   else if (req.url === "/posts" && req.method === "DELETE") {
-    await Post.deleteMany({});
-    successHandler(res, null);
+    try {
+      const data = await Post.deleteMany({});
+      successHandler(res, data);
+    } catch (e) {
+      errorHandler(res, e);
+    }
   }
   //DELETE target
   else if (req.url.startsWith("/posts/") && req.method === "DELETE") {
-    const id = req.url.split("/").pop();
-    await Post.findByIdAndDelete(id);
-    successHandler(res, null);
+    try {
+      const id = req.url.split("/").pop();
+      const data = await Post.findByIdAndDelete(id);
+      successHandler(res, data);
+    } catch (e) {
+      errorHandler(res, e);
+    }
   }
   //PATCH
   else if (req.url.startsWith("/posts/") && req.method === "PATCH") {
@@ -66,10 +78,14 @@ const reqListener = async (req, res) => {
     req.on("end", async () => {
       const data = JSON.parse(body);
       if (data.name || data.type || data.content || data.tags || data.image) {
-        const result = await Post.findByIdAndUpdate(id, data, {
-          new: true,
-        });
-        successHandler(res, result);
+        try {
+          const result = await Post.findByIdAndUpdate(id, data, { new: true });
+          successHandler(res, result);
+        } catch (e) {
+          errorHandler(res, e);
+        }
+      } else {
+        errorHandler(res);
       }
     });
   }
