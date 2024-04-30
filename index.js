@@ -1,6 +1,5 @@
 const http = require("http");
-const { v4: uuidv4 } = require("uuid");
-const { errorHandler, successHandler } = require("./helper");
+const { errorHandler, successHandler, headers } = require("./helper");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const Post = require("./model/postSchema");
@@ -16,14 +15,6 @@ mongoose
   });
 
 const reqListener = async (req, res) => {
-  const headers = {
-    "Access-Control-Allow-Headers":
-      "Content-Type, Authorization, Content-Length, X-Requested-With",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "PATCH, POST, GET,OPTIONS,DELETE",
-    "Content-Type": "application/json",
-  };
-
   //接收 post 而來的資料集,該資料為Buffer物件
   let body = "";
   req.on("data", (chunk) => {
@@ -31,34 +22,54 @@ const reqListener = async (req, res) => {
   });
 
   //GET
-  if (req.url === "/todos" && req.method === "GET") {
+  if (req.url === "/posts" && req.method === "GET") {
     const data = await Post.find({});
     successHandler(res, data);
   }
   //POST
-  else if (req.url === "/todos" && req.method === "POST") {
+  else if (req.url === "/posts" && req.method === "POST") {
     req.on("end", () => {
-      try {
-        const data = JSON.parse(body);
-        if (data.name) {
-          Post.create({
-            name: data.name,
-            tags: data.tags,
-            image: data.image,
-            content: data.content,
-            type: data.type,
+      const data = JSON.parse(body);
+      if (data.name) {
+        Post.create({
+          name: data.name,
+          tags: data.tags,
+          image: data.image,
+          content: data.content,
+          type: data.type,
+        })
+          .then((result) => {
+            successHandler(res, result);
           })
-            .then((result) => {
-              successHandler(res, result);
-            })
-            .catch((e) => {
-              errorHandler(res, e);
-            });
-        } else {
-          errorHandler(res);
-        }
-      } catch (e) {
-        errorHandler(res, e);
+          .catch((e) => {
+            errorHandler(res, e);
+          });
+      } else {
+        errorHandler(res);
+      }
+    });
+  }
+  //DELETE ALL
+  else if (req.url === "/posts" && req.method === "DELETE") {
+    await Post.deleteMany({});
+    successHandler(res, null);
+  }
+  //DELETE target
+  else if (req.url.startsWith("/posts/") && req.method === "DELETE") {
+    const id = req.url.split("/").pop();
+    await Post.findByIdAndDelete(id);
+    successHandler(res, null);
+  }
+  //PATCH
+  else if (req.url.startsWith("/posts/") && req.method === "PATCH") {
+    const id = req.url.split("/").pop();
+    req.on("end", async () => {
+      const data = JSON.parse(body);
+      if (data.name || data.type || data.content || data.tags || data.image) {
+        const result = await Post.findByIdAndUpdate(id, data, {
+          new: true,
+        });
+        successHandler(res, result);
       }
     });
   }
@@ -67,15 +78,7 @@ const reqListener = async (req, res) => {
     res.writeHead(200, headers);
     res.end();
   } else {
-    //Invalid request path.
-    res.writeHead(404, headers);
-    res.write(
-      JSON.stringify({
-        status: "Failed",
-        message: "Invalid request path.",
-      })
-    );
-    res.end();
+    errorHandler(res);
   }
 };
 

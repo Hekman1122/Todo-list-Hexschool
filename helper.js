@@ -34,4 +34,4 @@ function successHandler(res, data) {
   res.end();
 }
 
-module.exports = { errorHandler, successHandler };
+module.exports = { errorHandler, successHandler, headers };
