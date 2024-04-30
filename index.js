@@ -64,30 +64,42 @@ const reqListener = async (req, res) => {
   }
   //DELETE target
   else if (req.url.startsWith("/posts/") && req.method === "DELETE") {
-    try {
-      const id = req.url.split("/").pop();
-      const data = await Post.findByIdAndDelete(id);
-      successHandler(res, data);
-    } catch (e) {
-      errorHandler(res, e);
+    const id = req.url.split("/").pop();
+    let target = await Post.findById(id);
+    if (target) {
+      try {
+        const data = await Post.findByIdAndDelete(id);
+        successHandler(res, data);
+      } catch (e) {
+        errorHandler(res, e);
+      }
+    } else {
+      errorHandler(res);
     }
   }
   //PATCH
   else if (req.url.startsWith("/posts/") && req.method === "PATCH") {
     const id = req.url.split("/").pop();
-    req.on("end", async () => {
-      const data = JSON.parse(body);
-      if (data.name || data.type || data.content || data.tags || data.image) {
-        try {
-          const result = await Post.findByIdAndUpdate(id, data, { new: true });
-          successHandler(res, result);
-        } catch (e) {
-          errorHandler(res, e);
+    let target = await Post.findById(id);
+    if (target) {
+      req.on("end", async () => {
+        const data = JSON.parse(body);
+        if (data.name || data.type || data.content || data.tags || data.image) {
+          try {
+            const result = await Post.findByIdAndUpdate(id, data, {
+              new: true,
+            });
+            successHandler(res, result);
+          } catch (e) {
+            errorHandler(res, e);
+          }
+        } else {
+          errorHandler(res);
         }
-      } else {
-        errorHandler(res);
-      }
-    });
+      });
+    } else {
+      errorHandler(res);
+    }
   }
   //OPTIONS preflight check
   else if (req.method === "OPTIONS") {
