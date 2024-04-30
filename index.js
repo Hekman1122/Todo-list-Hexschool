@@ -24,7 +24,7 @@ const reqListener = async (req, res) => {
   //GET
   if (req.url === "/posts" && req.method === "GET") {
     try {
-      const data = await Post.find({});
+      const data = await Post.find({}).exec();
       successHandler(res, data);
     } catch (e) {
       errorHandler(res, e);
@@ -42,6 +42,7 @@ const reqListener = async (req, res) => {
           content: data.content,
           type: data.type,
         })
+          .exec()
           .then((result) => {
             successHandler(res, result);
           })
@@ -56,8 +57,8 @@ const reqListener = async (req, res) => {
   //DELETE ALL
   else if (req.url === "/posts" && req.method === "DELETE") {
     try {
-      const data = await Post.deleteMany({});
-      successHandler(res, data);
+      await Post.deleteMany({}).exec();
+      successHandler(res, null);
     } catch (e) {
       errorHandler(res, e);
     }
@@ -65,10 +66,10 @@ const reqListener = async (req, res) => {
   //DELETE target
   else if (req.url.startsWith("/posts/") && req.method === "DELETE") {
     const id = req.url.split("/").pop();
-    let target = await Post.findById(id);
+    let target = await Post.findById(id).exec();
     if (target) {
       try {
-        const data = await Post.findByIdAndDelete(id);
+        const data = await Post.findByIdAndDelete(id).exec();
         successHandler(res, data);
       } catch (e) {
         errorHandler(res, e);
@@ -80,7 +81,7 @@ const reqListener = async (req, res) => {
   //PATCH
   else if (req.url.startsWith("/posts/") && req.method === "PATCH") {
     const id = req.url.split("/").pop();
-    let target = await Post.findById(id);
+    let target = await Post.findById(id).exec();
     if (target) {
       req.on("end", async () => {
         const data = JSON.parse(body);
@@ -88,7 +89,7 @@ const reqListener = async (req, res) => {
           try {
             const result = await Post.findByIdAndUpdate(id, data, {
               new: true,
-            });
+            }).exec();
             successHandler(res, result);
           } catch (e) {
             errorHandler(res, e);
