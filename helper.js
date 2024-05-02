@@ -34,4 +34,9 @@ function successHandler(res, data) {
   res.end();
 }
 
-module.exports = { errorHandler, successHandler, headers };
+function validateUrl(url) {
+  const regex = /^\/posts\/.*$/;
+  return regex.test(url);
+}
+
+module.exports = { errorHandler, successHandler, headers, validateUrl };

@@ -39,7 +39,7 @@ const postSchemaObject = {
     default: 0,
   },
 };
-const postSchema = new mongoose.Schema(postSchemaObject);
+const postSchema = new mongoose.Schema(postSchemaObject, { versionKey: false });
 const Post = mongoose.model("posts", postSchema);
 
 module.exports = Post;

@@ -1,5 +1,10 @@
 const http = require("http");
-const { errorHandler, successHandler, headers } = require("./helper");
+const {
+  errorHandler,
+  successHandler,
+  headers,
+  validateUrl,
+} = require("./helper");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const Post = require("./model/postSchema");
@@ -24,7 +29,7 @@ const reqListener = async (req, res) => {
   //GET
   if (req.url === "/posts" && req.method === "GET") {
     try {
-      const data = await Post.find({}).exec();
+      const data = await Post.find({});
       successHandler(res, data);
     } catch (e) {
       errorHandler(res, e);
@@ -39,10 +44,9 @@ const reqListener = async (req, res) => {
           name: data.name,
           tags: data.tags,
           image: data.image,
-          content: data.content,
+          content: data.content.trim(),
           type: data.type,
         })
-          .exec()
           .then((result) => {
             successHandler(res, result);
           })
@@ -57,57 +61,61 @@ const reqListener = async (req, res) => {
   //DELETE ALL
   else if (req.url === "/posts" && req.method === "DELETE") {
     try {
-      await Post.deleteMany({}).exec();
+      await Post.deleteMany({});
       successHandler(res, null);
     } catch (e) {
       errorHandler(res, e);
     }
   }
   //DELETE target
-  else if (req.url.startsWith("/posts/") && req.method === "DELETE") {
+  else if (validateUrl(req.url) && req.method === "DELETE") {
     const id = req.url.split("/").pop();
-    let target = await Post.findById(id).exec();
-    if (target) {
-      try {
-        const data = await Post.findByIdAndDelete(id).exec();
+    let target;
+    try {
+      target = await Post.findById(id);
+      if (target) {
+        const data = await Post.findByIdAndDelete(id);
         successHandler(res, data);
-      } catch (e) {
-        errorHandler(res, e);
       }
-    } else {
-      errorHandler(res);
+    } catch (e) {
+      errorHandler(res, {
+        status: "false",
+        message: "查無此 id 或無此網站路由",
+      });
     }
   }
   //PATCH
-  else if (req.url.startsWith("/posts/") && req.method === "PATCH") {
-    const id = req.url.split("/").pop();
-    let target = await Post.findById(id).exec();
-    if (target) {
-      req.on("end", async () => {
-        const data = JSON.parse(body);
-        if (data.name || data.type || data.content || data.tags || data.image) {
-          try {
-            const result = await Post.findByIdAndUpdate(id, data, {
-              new: true,
-            }).exec();
-            successHandler(res, result);
-          } catch (e) {
-            errorHandler(res, e);
-          }
-        } else {
-          errorHandler(res);
+  else if (validateUrl(req.url) && req.method === "PATCH") {
+    req.on("end", async () => {
+      const data = JSON.parse(body);
+      const id = req.url.split("/").pop();
+      let target;
+      try {
+        target = await Post.findById(id);
+        if (target) {
+          const result = await Post.findByIdAndUpdate(id, data, {
+            new: true,
+            runValidators: true,
+          });
+          successHandler(res, result);
         }
-      });
-    } else {
-      errorHandler(res);
-    }
+      } catch (e) {
+        errorHandler(res, {
+          status: "false",
+          message: "查無此 id 或無此網站路由",
+        });
+      }
+    });
   }
   //OPTIONS preflight check
   else if (req.method === "OPTIONS") {
     res.writeHead(200, headers);
     res.end();
   } else {
-    errorHandler(res);
+    errorHandler(res, {
+      status: "false",
+      message: "無此網站路由",
+    });
   }
 };
 
